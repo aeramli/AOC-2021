@@ -92,8 +92,6 @@ class Board(
     }
 }
 
-val logger = Logger(true)
-
 fun getNumbers(numbers: String): List<Int> {
     val list = numbers.split(",").map { it.toInt() }
     logger.log("We have ${list.size} numbers to draw : $list")
@@ -143,6 +141,21 @@ fun draw(number: Int, boards: List<Board>): Board? {
     return winingBoard
 }
 
+fun drawMultiple(number: Int, boards: List<Board>): List<Board> {
+    val winingBoards = mutableListOf<Board>()
+    var winingBoard: Board? = null
+    for (y in boards.indices) {
+        winingBoard = play(number, boards[y])
+        if (winingBoard != null) {
+            logger.log("The wining board is the board number $y")
+            logger.log("$winingBoard")
+            winingBoards.add(winingBoard)
+        }
+    }
+    return winingBoards
+}
+
+val logger = Logger(false)
 fun main() {
     fun part1(input: List<String>): Int {
         val numbers = getNumbers(input[0])
@@ -161,7 +174,34 @@ fun main() {
         return -1
     }
 
+    fun part2(input: List<String>): Int {
+        val numbers = getNumbers(input[0])
+        val boards = buildBoards(input.subList(1, input.size))
+        var winingBoards: List<Board>
+        var winingNumber: Int
+        val alreadyWon = mutableSetOf<Board>()
+        for (i in numbers.indices) {
+            winingNumber = numbers[i]
+            logger.log("We draw $winingNumber")
+            winingBoards = drawMultiple(winingNumber, boards)
+            if (winingBoards.isNotEmpty()) {
+                logger.log("A new board is wining")
+                winingBoards.forEach {
+                    alreadyWon.add(it)
+                }
+                logger.log("alreadyWon = ${alreadyWon.size}")
+                logger.log("****************************")
+            }
+            if (alreadyWon.size == boards.size) {
+                return winingNumber * alreadyWon.last().sumOfAllUnmarked()
+            }
+        }
+
+        return -1
+    }
+
 
     val entries = readInput("day04/Day04")
     println(part1(entries))
+    println(part2(entries))
 }
